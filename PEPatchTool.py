@@ -20,50 +20,63 @@ class PTPatch:
     def load_patch(self):
         with open(self.patch_path, "rb") as f:
             self.patch_array = f.read()
+        if not self.check_magic():
+            raise ValueError(f"Invalid patch file: {self.patch_path}")
         self.minecraft_ver = self.patch_array[4]
         self.num_patches = self.patch_array[5]
         self.indices = self.patch_array[6:6 + self.num_patches * 4]
         self.count = 0
 
     def check_magic(self):
-        if self.patch_array[:4] != MAGIC:
-            raise ValueError(f"Invalid patch file: {self.patch_path}")
+        return self.patch_array[:4] == MAGIC
 
     def get_current_index(self):
-        i = self.indices[self.count * 4:(self.count + 1) * 4]
+        i = self.indices[self.count*4:(self.count+1)*4]
         return struct.unpack(">I", i)[0]
 
     def get_next_addr(self):
         index = self.get_current_index()
-        return struct.unpack(">I", self.patch_array[index:index + 4])[0]
+        return struct.unpack(">I", self.patch_array[index:index+4])[0]
 
     def get_data_length(self):
         start_index = self.get_current_index() + 4
         if self.count != self.num_patches - 1:
-            next_index = struct.unpack(">I", self.indices[(self.count + 1) * 4:(self.count + 2) * 4])[0]
-            end = next_index
+            next_index = struct.unpack(">I", self.indices[(self.count+1)*4:(self.count+2)*4])[0]
+            end_index = next_index
         else:
-            end = len(self.patch_array)
-        return end - start_index
+            end_index = len(self.patch_array)
+        return end_index - start_index
 
     def get_next_data(self):
         index = self.get_current_index()
         length = self.get_data_length()
-        return self.patch_array[index + 4:index + 4 + length]
+        return self.patch_array[index+4:index+4+length]
 
     def apply_patch(self, so_path):
         print(f"Applying patch: {os.path.basename(self.patch_path)}")
         with open(so_path, "rb") as f:
             data = bytearray(f.read())
+
         for self.count in range(self.num_patches):
             addr = self.get_next_addr()
             patch_bytes = self.get_next_data()
-            data[addr:addr + len(patch_bytes)] = patch_bytes
-            print(f"  Patch {self.count + 1}/{self.num_patches} applied at address {addr}")
+            data[addr:addr+len(patch_bytes)] = patch_bytes
+
         with open(so_path, "wb") as f:
             f.write(data)
         print("Patch applied successfully.")
 
+    def get_metadata(self):
+        meta_start = 6 + self.num_patches*4
+        first_index = self.get_current_index()
+        return self.patch_array[meta_start:first_index]
+
+    def get_description(self):
+        try:
+            meta = self.get_metadata()
+            return meta.decode("utf-8")
+        except Exception:
+            return ""
 
 def merge_assets(assets_src, assets_dest):
     print(f"Merging assets from {assets_src} into APK assets folder...")
@@ -78,7 +91,6 @@ def merge_assets(assets_src, assets_dest):
             print(f"  Asset merged: {os.path.join(rel_path, file)}")
     print("Assets merged successfully.")
 
-
 def patch_apk(apk_path, patch_folder):
     if not os.path.isfile(apk_path):
         print("APK file not found.")
@@ -88,7 +100,6 @@ def patch_apk(apk_path, patch_folder):
         return
 
     resources_dir = os.path.join(os.path.dirname(__file__), "resources")
-
     apksigner_jar_files = glob.glob(os.path.join(resources_dir, "*.jar"))
     if not apksigner_jar_files:
         print("ApkSigner.jar not found in the resources folder.")
@@ -116,8 +127,10 @@ def patch_apk(apk_path, patch_folder):
             for mod_file in mod_files:
                 patch = PTPatch(mod_file)
                 patch.load_patch()
-                patch.check_magic()
                 patch.apply_patch(so_path)
+                desc = patch.get_description()
+                if desc:
+                    print(f"    Description: {desc}")
         else:
             print("No .mod patch files found.")
 

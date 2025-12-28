@@ -8,7 +8,6 @@ import sys
 
 MAGIC = bytes([0xFF, 0x50, 0x54, 0x50])
 
-
 class PTPatch:
     def __init__(self, patch_path):
         self.patch_path = patch_path

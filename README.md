@@ -1,6 +1,6 @@
 # PE Patch Tool
 
-A Python-based tool to patch **Minecraft Pocket Edition APKs** (based off [https://github.com/machinamentum/PocketTool](https://github.com/zhuowei/MCPELauncher) 's implementation) with `.mod` patches (PocketTool patches) and support for modified assets. This tool allows you to apply code modifications to `libminecraftpe.so` and merge custom assets into the APK while keeping all existing assets intact and then rebuilds the apk.
+A Python-based tool to patch **Minecraft Pocket Edition APKs** (based off https://github.com/zhuowei/MCPELauncher 's implementation) with `.mod` patches (PocketTool patches) and support for modified assets. This tool allows you to apply code modifications to `libminecraftpe.so` and merge custom assets into the APK while keeping all existing assets intact and then rebuilds the apk.
 
 ---
 

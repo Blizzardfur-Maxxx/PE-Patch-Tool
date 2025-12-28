@@ -8,7 +8,6 @@ A Python-based tool to patch **Minecraft Pocket Edition APKs** (based off https:
 
 - Applies `.mod` patches from a `patches` folder to `libminecraftpe.so` inside the APK.
 - Merges modified assets from a `patches/assets` folder into the APK.
-- Preserves unmodified assets — does **not delete existing assets**.
 - Automatically repacks the APK after patching.
 - Signs the APK using provided `.pk8` and `.pem` keys.
 ---

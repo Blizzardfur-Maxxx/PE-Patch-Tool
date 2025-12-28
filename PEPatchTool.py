@@ -88,7 +88,6 @@ def merge_assets(assets_src, assets_dest):
             src_file = os.path.join(root, file)
             dst_file = os.path.join(target_root, file)
             shutil.copy2(src_file, dst_file)
-            print(f"  Asset merged: {os.path.join(rel_path, file)}")
     print("Assets merged successfully.")
 
 def patch_apk(apk_path, patch_folder):
